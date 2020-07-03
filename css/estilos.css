@@ -1,0 +1,106 @@
+@font-face {
+  font-family: gameFont;
+  src: url('../fonts/PressStart2P.ttf');
+}
+*{
+  box-sizing: border-box;
+}
+
+body{
+  background-image: url('../image/background.jpg');
+  background-size: cover;
+}
+
+.main-container{
+  width: 90%;
+  margin: 0 auto;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+}
+
+.main-titulo{
+  font-family: gameFont;
+  font-size: 3em;
+  color: #DCFF0E;
+  width: 100%;
+}
+
+.panel-tablero{
+  width: 70%;
+  border: 10px solid #E87306;
+  background: rgba(232, 115, 6, 0.5);
+  border-radius: 5px;
+  height: 700px;
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.panel-score{
+  width: 25%;
+  height: 700px;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+}
+
+
+.score, .moves, .time{
+  text-align: center;
+  height: 23%;
+  width: 100%;
+  border: 10px solid #E87306;
+  border-radius: 5px;
+  background: rgba(232, 115, 6, 0.5);
+}
+
+
+.buttons{
+  height: 10%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.data-titulo, .data-info{
+  font-family: gameFont;
+  color: #E8CA06;
+}
+.titulo-over{
+  font-family: gameFont;
+  font-size: 3em;
+  text-align: center;
+  color: #DCFF0E;
+}
+.btn-reinicio{
+  background: #E8CA06;
+  border: 6px solid #FFB206;
+  border-radius: 5px;
+  font-family: gameFont;
+  font-size: 1.2em;
+  color: #FF4007;
+}
+.btn-reinicio:hover{
+  color: #fff;
+  cursor: pointer;
+}
+.btn-reinicio:active{
+  font-size: 1em;
+}
+.data-info{
+  font-size: 1.8em;
+}
+div[class^='col']{
+  width: 14.28%;
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: flex-end;
+  align-items: center;
+
+}
+
+.elemento{
+  width: 99.4px;
+  height: 96px;
+
+}
