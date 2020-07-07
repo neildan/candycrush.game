@@ -1,17 +1,17 @@
 @font-face {
   font-family: gameFont;
-  src: url('../fonts/PressStart2P.ttf');
+  src: url("../fonts/PressStart2P.ttf");
 }
-*{
+* {
   box-sizing: border-box;
 }
 
-body{
-  background-image: url('../image/background.jpg');
+body {
+  background-image: url("../image/background.jpg");
   background-size: cover;
 }
 
-.main-container{
+.main-container {
   width: 90%;
   margin: 0 auto;
   display: flex;
@@ -19,16 +19,15 @@ body{
   justify-content: space-between;
 }
 
-.main-titulo{
+#main-titulo {
   font-family: gameFont;
   font-size: 3em;
-  color: #DCFF0E;
   width: 100%;
 }
 
-.panel-tablero{
+.panel-tablero {
   width: 70%;
-  border: 10px solid #E87306;
+  border: 10px solid #e87306;
   background: rgba(232, 115, 6, 0.5);
   border-radius: 5px;
   height: 700px;
@@ -36,7 +35,7 @@ body{
   flex-flow: row wrap;
 }
 
-.panel-score{
+.panel-score {
   width: 25%;
   height: 700px;
   display: flex;
@@ -44,63 +43,96 @@ body{
   justify-content: space-between;
 }
 
-
-.score, .moves, .time{
+.score,
+.moves,
+.time {
   text-align: center;
   height: 23%;
   width: 100%;
-  border: 10px solid #E87306;
+  border: 10px solid #e87306;
   border-radius: 5px;
   background: rgba(232, 115, 6, 0.5);
 }
 
-
-.buttons{
+.buttons {
   height: 10%;
   width: 100%;
   display: flex;
   justify-content: center;
 }
 
-.data-titulo, .data-info{
+.data-titulo,
+.data-info {
   font-family: gameFont;
-  color: #E8CA06;
+  color: #e8ca06;
 }
-.titulo-over{
+.titulo-over {
   font-family: gameFont;
   font-size: 3em;
   text-align: center;
-  color: #DCFF0E;
+  color: #dcff0e;
 }
-.btn-reinicio{
-  background: #E8CA06;
-  border: 6px solid #FFB206;
+#btn-reinicio {
+  background: #e8ca06;
+  border: 6px solid #ffb206;
   border-radius: 5px;
   font-family: gameFont;
   font-size: 1.2em;
-  color: #FF4007;
+  color: #ff4007;
 }
-.btn-reinicio:hover{
+#btn-reinicio:hover {
   color: #fff;
   cursor: pointer;
 }
-.btn-reinicio:active{
+#btn-reinicio:active {
   font-size: 1em;
 }
-.data-info{
+.data-info {
   font-size: 1.8em;
 }
-div[class^='col']{
+div[class^="col"] {
   width: 14.28%;
   display: flex;
   flex-flow: column wrap;
   justify-content: flex-end;
   align-items: center;
-
 }
 
-.elemento{
+.elemento {
   width: 99.4px;
   height: 96px;
-
 }
+
+.noShow {
+  display: none;
+}
+
+/* Inicio : Cambio color titulo */
+.color-yellow {
+  color: #dcff0e;
+}
+
+.color-white {
+  color: white;
+}
+/* FIn : Cambio color titulo */
+
+/* Inicio : Temporizador */
+#timer {
+  display: flex;
+}
+
+#timer > span {
+  margin-left: 2.5em;
+}
+
+.minutesTimer {
+  width: 55%;
+  text-align: right;
+}
+
+.secondsTimer {
+  width: 45%;
+  text-align: left;
+}
+/* Fin : Temporizador */
