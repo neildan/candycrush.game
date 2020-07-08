@@ -25,14 +25,20 @@ body {
   width: 100%;
 }
 
-.panel-tablero {
-  width: 70%;
+#panel-tablero {
+  width: 700px;
+  height: 700px;
   border: 10px solid #e87306;
   background: rgba(232, 115, 6, 0.5);
   border-radius: 5px;
-  height: 700px;
   display: flex;
   flex-flow: row wrap;
+}
+
+#panel-tablero > div{
+  height: 6.05em;
+  width: 6.05em;
+  background-size: contain;
 }
 
 .panel-score {
@@ -90,13 +96,6 @@ body {
 .data-info {
   font-size: 1.8em;
 }
-div[class^="col"] {
-  width: 14.28%;
-  display: flex;
-  flex-flow: column wrap;
-  justify-content: flex-end;
-  align-items: center;
-}
 
 .elemento {
   width: 99.4px;
@@ -105,6 +104,10 @@ div[class^="col"] {
 
 .noShow {
   display: none;
+}
+
+.flex {
+  display: flex;
 }
 
 /* Inicio : Cambio color titulo */
@@ -119,20 +122,16 @@ div[class^="col"] {
 
 /* Inicio : Temporizador */
 #timer {
-  display: flex;
-}
-
-#timer > span {
-  margin-left: 2.5em;
+  text-align: center;
 }
 
 .minutesTimer {
-  width: 55%;
+  width: 54%;
   text-align: right;
 }
 
 .secondsTimer {
-  width: 45%;
+  width: 46%;
   text-align: left;
 }
 /* Fin : Temporizador */

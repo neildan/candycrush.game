@@ -6,24 +6,42 @@ var Game = (function Game() {
     /**
      * @var score the score of a game
      * @var movements the movements of a game.
-     * @var timer is an element HTML
-     * @var title is an element HTML
-     * @var score_text is an element HTML
-     * @var btn_reinicio is an element HTML
-     * @var movimientos_text is an element HTML
      */
     var score = 0
     var movements = 0
-    var timer = $('#timer');
-    var title = $("#main-titulo");
-    var score_text = $("#score-text");
-    var btn_reinicio = $("#btn-reinicio");
-    var movimientos_text = $("#movimientos-text");
 
     /**
-     * @var _myTimer timer
+     * @const width is the quantity of columns and rows
+     * @const squares is the quantity of candies
+     */
+    const width = 7
+    const squares = []
+    const candies = [
+        './image/1.png',
+        './image/2.png',
+        './image/3.png',
+        './image/4.png'
+    ]
+
+    /**
+     * Elements HTML
+     */
+    const grid = $("#panel-tablero");
+    const timer = $('#timer');
+    const title = $("#main-titulo");
+    const score_text = $("#score-text");
+    const btn_reinicio = $("#btn-reinicio");
+    const movimientos_text = $("#movimientos-text");
+
+    /**
+     * @let _myTimer timer
+     * @let Dragging the Candy
      */
     let _myTimer = {}
+    let colorBeingDragged
+    let colorBeingReplaced
+    let squareIdBeingDragged
+    let squareIdBeingReplaced
 
     /**
      * Class TimerGame control de game's timer
@@ -33,13 +51,13 @@ var Game = (function Game() {
         /**
          * Get the timer
          */
-        static get myTimer(){
+        static get myTimer() {
             return _myTimer
         }
         /**
          * Set the timer
          */
-        static set myTimer(obj){
+        static set myTimer(obj) {
             _myTimer = obj
         }
     }
@@ -66,6 +84,8 @@ var Game = (function Game() {
             changeStatusGame(true)
             newGame()
             startTimerGame()
+            createBoard()
+            addEventsBoard()
 
         } else {
             // Restart game
@@ -82,8 +102,72 @@ var Game = (function Game() {
     function newGame() {
         score = 0
         movements = 0
+        grid.html('')
         TimerGame.myTimer = {}
         sessionStorage.activeGame = true
+        squares.splice(0, squares.length);
+    }
+
+    /**
+     * Create the board
+     * @author Daniel Valencia <2020/06/07>
+     */
+    function createBoard() {
+        for (let i = 0; i < width * width; i++) {
+            let randomColor = getRandomInt(null, candies.length)
+
+            let square = $('<div/>', {
+                id: i,
+                draggable: 'true',
+                style: 'background-image: url(' + candies[randomColor] + ');'
+            });
+            squares.push(square)
+        }
+        grid.append(squares)
+    }
+
+    /**
+     * Add events to the board's candies
+     * @author Daniel Valencia <2020/06/07>
+     */
+    function addEventsBoard() {
+        let events = ["dragstart", "dragend", "dragover", "dragenter", "drageleave", "drop"]
+        let nameFunctionEvents = ["dragStart", "dragEnd", "dragOver", "dragEnter", "dragLeave", "dragDrop"]
+
+        squares.forEach(function (square, indexSquare) {
+            events.forEach(function (element, index) {
+                square.on(element, eval(nameFunctionEvents[index]))
+            })
+        })
+    }
+
+    function dragStart() {
+        console.log("pase por dragStart")
+    }
+
+    function dragEnd() {
+        console.log("pase por dragEnd")
+
+    }
+
+    function dragOver(e) {
+        console.log("pase por dragOver")
+
+    }
+
+    function dragEnter(e) {
+        console.log("pase por dragEnter")
+
+    }
+
+    function dragLeave() {
+        console.log("pase por dragLeave")
+
+    }
+
+    function dragDrop() {
+        console.log("pase por dragDrop")
+
     }
 
     /**
@@ -102,7 +186,6 @@ var Game = (function Game() {
                 minutes: 'minutesTimer',
                 seconds: 'secondsTimer',
                 clearDiv: 'noShow',
-                timeout: 'noShow'
             }
         });
 
@@ -115,7 +198,7 @@ var Game = (function Game() {
      */
     function finishTimerGame() {
         TimerGame.myTimer.trigger('resetime');
-        timer.html('<span>02:00</span>')
+        timer.html('02:00')
     }
 
     /**
@@ -123,7 +206,9 @@ var Game = (function Game() {
      * @author Daniel Valencia <2020/06/07>
      */
     function timerComplete() {
-        timer.html('<span>00:00</span>')
+        timer.html('00:00')
+        timer.removeClass("flex")
+        timer.removeClass("noShow")
     }
 
     /**
@@ -140,8 +225,10 @@ var Game = (function Game() {
      */
     function changeStatusGame(status = false) {
         if (status) {
+            timer.addClass("flex")
             btn_reinicio.html("Reiniciar")
         } else {
+            timer.removeClass("flex")
             btn_reinicio.html("Iniciar")
         }
     }
@@ -162,7 +249,6 @@ var Game = (function Game() {
             title.addClass(yellowClass)
         }
     }
-
 
     /**
      * Change the score
@@ -205,7 +291,7 @@ var Game = (function Game() {
      * @param int min
      * @param int max
      */
-    function getRandomInt(min, max) {
+    function getRandomInt(min = 1, max) {
         return Math.floor(Math.random() * (max - min)) + min;
     }
 

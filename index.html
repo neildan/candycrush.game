@@ -12,15 +12,7 @@
   <div class="main-container">
     <h1 id="main-titulo" class="color-yellow">Match Game</h1>
 
-    <div class="panel-tablero">
-      <div class="col-1"></div>
-      <div class="col-2"></div>
-      <div class="col-3"></div>
-      <div class="col-4"></div>
-      <div class="col-5"></div>
-      <div class="col-6"></div>
-      <div class="col-7"></div>
-    </div>
+    <div id="panel-tablero"></div>
 
     <div class="panel-score">
       <div class="score">
@@ -33,9 +25,7 @@
       </div>
       <div class="time">
         <h2 class="data-titulo">Tiempo</h2>
-        <div class="data-info" id="timer" data-minutes-left="2">
-          <span>02:00</span>
-        </div>
+        <div class="data-info" id="timer" data-minutes-left="2">02:00</div>
       </div>
       <div class="buttons">
         <button id="btn-reinicio" onclick="Game.start()">Iniciar</button>
