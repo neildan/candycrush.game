@@ -6,9 +6,11 @@ var Game = (function Game() {
     /**
      * @var score the score of a game
      * @var movements the movements of a game.
+     * @var statusGame the status of the game.
      */
     var score = 0
     var movements = 0
+    var statusGame = 'new'
 
     /**
      * @const width is the quantity of columns and rows
@@ -38,8 +40,8 @@ var Game = (function Game() {
      * @let Dragging the Candy
      */
     let _myTimer = {}
-    let colorBeingDragged
-    let colorBeingReplaced
+    let candyBeingDragged
+    let candyBeingReplaced
     let squareIdBeingDragged
     let squareIdBeingReplaced
 
@@ -90,7 +92,18 @@ var Game = (function Game() {
         } else {
             // Restart game
             changeStatusGame()
-            finishTimerGame()
+            if (statusGame == 'end') {
+                resetGame()
+            } else {
+                finishTimerGame()
+                removeCandiesBoard()
+            }
+            changePunctuation()
+            changeMovements()
+
+            showPunctuation()
+            showMovements()
+
             removeSessionStorage()
         }
     }
@@ -100,12 +113,23 @@ var Game = (function Game() {
      * @author Daniel Valencia <2020/06/06>
      */
     function newGame() {
-        score = 0
-        movements = 0
         grid.html('')
+        statusGame = "new"
         TimerGame.myTimer = {}
         sessionStorage.activeGame = true
-        squares.splice(0, squares.length);
+        squares.splice(0, squares.length)
+    }
+
+    /**
+     * Reset the original values of the game
+     * @author Daniel Valencia <2020/06/08>
+     */
+    function resetGame() {
+        $("#end-game").addClass("noShow")
+        $("#panel-score").css("width", "25%")
+        $("#time").show("fast")
+        title.show("fast")
+        grid.show("fast")
     }
 
     /**
@@ -113,17 +137,37 @@ var Game = (function Game() {
      * @author Daniel Valencia <2020/06/07>
      */
     function createBoard() {
-        for (let i = 0; i < width * width; i++) {
+        for (let i = 1; i < parseInt(width * width + 1); i++) {
             let randomColor = getRandomInt(null, candies.length)
 
             let square = $('<div/>', {
                 id: i,
                 draggable: 'true',
-                style: 'background-image: url(' + candies[randomColor] + ');'
+                style: 'background-image: url("' + candies[randomColor] + '")'
             });
             squares.push(square)
         }
         grid.append(squares)
+    }
+
+    /**
+     * Remove all candies of the board
+     * @author Daniel Valencia <2020/06/08>
+     */
+    function removeCandiesBoard() {
+        grid.html('')
+    }
+
+    /**
+     * Show the results obtained
+     * @author Daniel Valencia <2020/06/08>
+     */
+    function showResults() {
+        grid.hide("slow")
+        title.hide("slow")
+        $("#time").hide("slow")
+        $("#panel-score").css("width", "100%")
+        $("#end-game").removeClass("noShow")
     }
 
     /**
@@ -141,33 +185,98 @@ var Game = (function Game() {
         })
     }
 
-    function dragStart() {
-        console.log("pase por dragStart")
-    }
-
-    function dragEnd() {
-        console.log("pase por dragEnd")
-
-    }
-
+    /**
+     * Drag Over
+     * @param Event e
+     * @author Daniel Valencia <2020/06/08>
+     */
     function dragOver(e) {
-        console.log("pase por dragOver")
-
+        e.preventDefault()
     }
 
+    /**
+     * Drag Enter
+     * @param Event e
+     * @author Daniel Valencia <2020/06/08>
+     */
     function dragEnter(e) {
-        console.log("pase por dragEnter")
-
+        e.preventDefault()
     }
 
+    /**
+     * Drag Leave, Remove background image style
+     * @author Daniel Valencia <2020/06/08>
+     */
     function dragLeave() {
-        console.log("pase por dragLeave")
-
+        $("#" + this.id).css("background-image", "")
+        console.log("DragLeave", this.id)
     }
 
-    function dragDrop() {
-        console.log("pase por dragDrop")
+    /**
+     * Drag Start:
+     * Get the "candy" and "square" origin
+     * @author Daniel Valencia <2020/06/08>
+     */
+    function dragStart() {
+        candyBeingDragged = this.style.backgroundImage
+        squareIdBeingDragged = parseInt(this.id)
+        console.log("* DragStart: ", squareIdBeingDragged)
+    }
 
+    /**
+     * Drag Drop:
+     * Get the "candy" and "square" destination
+     * After the candies will be exchange
+     * @author Daniel Valencia <2020/06/08>
+     */
+    function dragDrop() {
+        candyBeingReplaced = this.style.backgroundImage
+        squareIdBeingReplaced = parseInt(this.id)
+
+        this.style.backgroundImage = candyBeingDragged
+        squares[squareIdBeingDragged - 1].css("background-image", candyBeingReplaced)
+        console.log("DragDrop", squareIdBeingReplaced)
+    }
+
+    /**
+    * Drag End:
+    * Prevent wrong movements
+    * @author Daniel Valencia <2020/06/08>
+    */
+    function dragEnd() {
+        if (squareIdBeingReplaced) {
+            if (validationValidMove()) {
+                squareIdBeingReplaced = null
+                changeMovements(1)
+                showMovements()
+                console.log("DragEnd Valid")
+            } else {
+                squares[squareIdBeingReplaced - 1].css("background-image", candyBeingReplaced)
+                squares[squareIdBeingDragged - 1].css("background-image", candyBeingDragged)
+                console.log("DragEnd Invalid")
+            }
+        } else {
+            squares[squareIdBeingDragged].css("background-image", candyBeingDragged)
+            console.log("DragEnd Itself")
+        }
+    }
+
+    /**
+    * Validate Valid Move
+    * @author Daniel Valencia <2020/06/08>
+    */
+    function validationValidMove() {
+        let validMoves = [
+            squareIdBeingDragged - width,
+            squareIdBeingDragged + width
+        ]
+        let candyLeftBorder = (parseInt(squareIdBeingDragged - 1) % width == 0)
+        let candyRightBorder = (squareIdBeingDragged % width == 0)
+
+        if (!candyLeftBorder) validMoves.push(squareIdBeingDragged - 1)
+        if (!candyRightBorder) validMoves.push(squareIdBeingDragged + 1)
+
+        return validMoves.includes(squareIdBeingReplaced)
     }
 
     /**
@@ -206,9 +315,12 @@ var Game = (function Game() {
      * @author Daniel Valencia <2020/06/07>
      */
     function timerComplete() {
+        statusGame = "end"
         timer.html('00:00')
         timer.removeClass("flex")
         timer.removeClass("noShow")
+        removeCandiesBoard()
+        showResults()
     }
 
     /**
@@ -255,8 +367,12 @@ var Game = (function Game() {
      * @param int newValue
      * @author Daniel Valencia <2020/06/06>
      */
-    function changePunctuation(newValue) {
-        score = score + newValue
+    function changePunctuation(newValue = null) {
+        if (!newValue) {
+            score = 0
+        } else {
+            score = score + newValue
+        }
         return Number(score)
     }
 
@@ -273,8 +389,12 @@ var Game = (function Game() {
      * @param int newValue
      * @author Daniel Valencia <2020/06/06>
      */
-    function changeMovements(newValue) {
-        movements = movements + newValue
+    function changeMovements(newValue = null) {
+        if (!newValue) {
+            movements = 0
+        } else {
+            movements = movements + newValue
+        }
         return Number(movements)
     }
 

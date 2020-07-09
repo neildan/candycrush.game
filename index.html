@@ -10,22 +10,23 @@
 
 <body>
   <div class="main-container">
-    <h1 id="main-titulo" class="color-yellow">Match Game</h1>
+    <h1 id="main-titulo" class="titulos-game color-yellow">Match Game</h1>
 
     <div id="panel-tablero"></div>
 
-    <div class="panel-score">
-      <div class="score">
+    <div id="panel-score">
+      <h1 class="titulos-game noShow color-yellow" style="text-align: center;" id="end-game">Juego Terminado</h1>
+      <div id="score">
         <h2 class="data-titulo">Puntuación</h2>
         <span class="data-info" id="score-text">0</span>
       </div>
-      <div class="moves">
+      <div id="moves">
         <h2 class="data-titulo">Movimientos</h2>
         <span class="data-info" id="movimientos-text">0</span>
       </div>
-      <div class="time">
+      <div id="time">
         <h2 class="data-titulo">Tiempo</h2>
-        <div class="data-info" id="timer" data-minutes-left="2">02:00</div>
+        <div class="data-info" id="timer" data-minutes-left="0.1">02:00</div>
       </div>
       <div class="buttons">
         <button id="btn-reinicio" onclick="Game.start()">Iniciar</button>
