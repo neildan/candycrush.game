@@ -13,17 +13,24 @@ var Game = (function Game() {
     var statusGame = 'new'
 
     /**
-     * @const width is the quantity of columns and rows
-     * @const squares is the quantity of candies
+     * @const width the length of rows and columns
+     * @const candies list of all types of candy in the game
+     * @const squares all candies of the board
+     * @const normalCombination is a combination posible for a player
+     * @const specialCombination is a combination only possible at the beginning of the game
+     * @const successfulMovements successful movements
      */
     const width = 7
-    const squares = []
     const candies = [
         './image/1.png',
         './image/2.png',
         './image/3.png',
         './image/4.png'
     ]
+    const squares = []
+    const normalCombination = [5, 4, 3]
+    const specialCombination = [5, 4, 3]
+    const successfulMovements = []
 
     /**
      * Elements HTML
@@ -88,6 +95,10 @@ var Game = (function Game() {
             startTimerGame()
             createBoard()
             addEventsBoard()
+            analyzeBoard(specialCombination)
+            addScore()
+            removeSuccessfulMovementsOfBoard()
+            createNewCandies()
 
         } else {
             // Restart game
@@ -98,10 +109,10 @@ var Game = (function Game() {
                 finishTimerGame()
                 removeCandiesBoard()
             }
-            changePunctuation()
+            changeScore()
             changeMovements()
 
-            showPunctuation()
+            showScore()
             showMovements()
 
             removeSessionStorage()
@@ -138,12 +149,12 @@ var Game = (function Game() {
      */
     function createBoard() {
         for (let i = 1; i < parseInt(width * width + 1); i++) {
-            let randomColor = getRandomInt(null, candies.length)
+            let randomCandy = getRandomInt(null, candies.length)
 
             let square = $('<div/>', {
                 id: i,
                 draggable: 'true',
-                style: 'background-image: url("' + candies[randomColor] + '")'
+                style: 'background-image: url("' + candies[randomCandy] + '")'
             });
             squares.push(square)
         }
@@ -245,7 +256,7 @@ var Game = (function Game() {
     */
     function dragEnd() {
         if (squareIdBeingReplaced) {
-            if (validationValidMove()) {
+            if (validationMove()) {
                 squareIdBeingReplaced = null
                 changeMovements(1)
                 showMovements()
@@ -265,7 +276,7 @@ var Game = (function Game() {
     * Validate Valid Move
     * @author Daniel Valencia <2020/06/08>
     */
-    function validationValidMove() {
+    function validationMove() {
         let validMoves = [
             squareIdBeingDragged - width,
             squareIdBeingDragged + width
@@ -277,6 +288,235 @@ var Game = (function Game() {
         if (!candyRightBorder) validMoves.push(squareIdBeingDragged + 1)
 
         return validMoves.includes(squareIdBeingReplaced)
+    }
+
+    /**
+     * Analyze Board in search of successful movements.
+     * @param array typeCombination: only can be { normalCombination, specialCombination }
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function analyzeBoard(typeCombination) {
+        successfulMovements.splice(0, squares.length)
+        let allPossibleCombinations = typeCombination
+
+        allPossibleCombinations.forEach(function (typeMove, indexMove) {
+
+            for (let i = 1; i <= parseInt(width * width); i++) {
+
+                let typeCandy = squares[i - 1].css("background-image")
+                if (typeCandy === 'none') continue
+
+                let row = [i]
+                let column = [i]
+                let movement = {}
+                let orientation = ["row", "column"]
+                let successfulMovementInRow = false
+                let successfulMovementInColumn = false
+
+                orientation.forEach(function (orientationOfMove, orientationOfMoveIndex) {
+                    if (orientationOfMove == "row" && !limitSearchCapabilityRows(i, typeMove)) {
+
+                        for (let j = 1; j < typeMove; j++) {
+                            row.push(i + j)
+                        }
+
+                        successfulMovementInRow = row.every(
+                            idCandy => compareCandies(idCandy, typeCandy)
+                        )
+
+                    } else if (orientationOfMove == "column" && !limitSearchCapabilityColumns(i, typeMove)) {
+
+                        for (let j = 1; j < typeMove; j++) {
+                            column.push(i + j * width)
+                        }
+
+                        successfulMovementInColumn = column.every(
+                            idCandy => compareCandies(idCandy, typeCandy)
+                        )
+                    }
+                })
+
+                if (successfulMovementInRow || successfulMovementInColumn) {
+
+                    movement = {
+                        row: row,
+                        column: column,
+                        successRow: successfulMovementInRow,
+                        successColumn: successfulMovementInColumn
+                    }
+
+                    if (repeatedMovements(movement)) continue
+
+                    successfulMovements.push(movement)
+                }
+            }
+        })
+    }
+
+    /**
+     * Add Score
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function addScore() {
+        if (successfulMovements.length > 0) {
+            successfulMovements.forEach(function (move, index) {
+                if (move.successRow) changeScore(parseInt(move.row.length))
+                if (move.successColumn) changeScore(parseInt(move.column.length))
+            })
+            showScore()
+        }
+    }
+
+    /**
+     * Get the candies from sucessful movements
+     * @return array
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function getCandiesFromSuccessfulMovements() {
+        let movements = []
+        if (successfulMovements.length > 0) {
+
+            successfulMovements.forEach(function (element, index) {
+                let coma = (index > 0) ? "," : ""
+                if (element.successRow) movements += coma + element.row.join(",")
+                if (element.successColumn) movements += coma + element.column.join(",")
+            })
+            if (movements != "") movements = movements.split(",")
+
+            movements = movements.filter(onlyUnique);
+        }
+        return movements
+    }
+
+    /**
+     * Remove the successful movements of the board
+     * @return array
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function removeSuccessfulMovementsOfBoard() {
+        let removeCandies = getCandiesFromSuccessfulMovements()
+
+        if (removeCandies.length > 0) {
+            removeCandies.forEach(index => {
+                squares[index - 1].css("background-image", "")
+            })
+        }
+    }
+
+    /**
+     * Create new Candies
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function createNewCandies() {
+        let withOutCandies = getCandiesFromSuccessfulMovements()
+
+        console.log("Need new candy: ", withOutCandies)
+    }
+
+    /**
+     * Exclude repeated movements
+     * @param obj movement
+     * @return Boolean
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function repeatedMovements(movement) {
+        if (successfulMovements.length > 0) {
+            let exit = false
+
+            if (movement.successRow) {
+                successfulMovements.some(function (element, index) {
+                    if (element.successRow) {
+                        if (compareTwoArrays(element.row, movement.row)) {
+                            exit = true
+                            return true
+                        }
+                    }
+                })
+            } else if (movement.successColumn) {
+                successfulMovements.some(function (element, index) {
+                    if (element.successColumn) {
+                        if (compareTwoArrays(element.column, movement.column)) {
+                            exit = true
+                            return true
+                        }
+                    }
+                })
+            }
+            return exit
+        }
+    }
+
+    /**
+     * Compare two arrays with numbers inside
+     * @param array array1
+     * @param array array2
+     * @return Boolean
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function compareTwoArrays(array1, array2) {
+        let result = array1.concat(array2)
+        result = result.filter(onlyUnique);
+        result = result.sort(function (a, b) { return a - b });
+        result = result.join("")
+
+        return (array1.join("") === result)
+    }
+
+    /**
+     * Get unique values in array
+     * @param string value
+     * @param int index
+     * @param array self
+     */
+    function onlyUnique(value, index, self) {
+        return self.indexOf(value) === index;
+    }
+
+    /**
+     * Compare Candies
+     * @param int idCandy
+     * @param int typeCandy
+     * @return Boolean
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function compareCandies(idCandy, typeCandy) {
+        return (squares[idCandy - 1].css("background-image") === typeCandy)
+    }
+
+    /**
+     * Limit Search Capability for rows
+     * @param int CandyPosition
+     * @param int typeMove
+     * @return Boolean
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function limitSearchCapabilityRows(candyPosition, typeMove) {
+        let leaveSearch = []
+        let limit = typeMove - 2
+
+        for (let i = 1; i <= width; i++) {
+            for (let j = 1; j <= limit; j++) {
+                leaveSearch.push(width * i - j)
+            }
+            leaveSearch.push(width * i)
+        }
+        return leaveSearch.includes(candyPosition)
+    }
+
+    /**
+     * Limit Search Capability for columns
+     * @param int candyPosition
+     * @param int typeMove
+     * @return Boolean
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function limitSearchCapabilityColumns(candyPosition, typeMove) {
+        let limitSearchCapability = typeMove
+
+        if (typeMove == 5) limitSearchCapability = 3
+        if (typeMove == 3) limitSearchCapability = 5
+
+        return (candyPosition > width * limitSearchCapability)
     }
 
     /**
@@ -367,7 +607,7 @@ var Game = (function Game() {
      * @param int newValue
      * @author Daniel Valencia <2020/06/06>
      */
-    function changePunctuation(newValue = null) {
+    function changeScore(newValue = null) {
         if (!newValue) {
             score = 0
         } else {
@@ -380,7 +620,7 @@ var Game = (function Game() {
      * Show the current score
      * @author Daniel Valencia <2020/06/06>
      */
-    function showPunctuation() {
+    function showScore() {
         score_text.html(score)
     }
 
