@@ -411,6 +411,52 @@ var Game = (function Game() {
         let withOutCandies = getCandiesFromSuccessfulMovements()
 
         console.log("Need new candy: ", withOutCandies)
+        let columns = [7, 6, 5, 4, 3, 2, 1]
+
+        columns.forEach(function (column, index) {
+            let rows = []
+            let rowWithCandies = []
+            let rowWithOutCandies = []
+
+            rows.push(column)
+            for (let i = 1; i <= width - 1; i++) {
+                rows.push(column + i * width)
+            }
+
+            rows.forEach(function (row, rowId) {
+                withOutCandies.forEach(function (withOutCandy, withOutCandyId) {
+                    if (row == withOutCandy) {
+                        rowWithOutCandies.push(row)
+                    }
+                })
+            })
+
+            if (rowWithOutCandies && rowWithOutCandies.length > 0) {
+                rowWithCandies = rows
+                    .filter(x => !rowWithOutCandies.includes(x))
+                    .concat(rowWithOutCandies.filter(x => !rows.includes(x)));
+
+                rowWithOutCandies.sort(function (a, b) { return b - a });
+
+                /*
+                Todavía no se
+                if (rowWithCandies) {
+                    rowWithCandies.sort(function (a, b) { return b - a });
+
+                    if (rowWithCandies.length > rowWithOutCandies.length){
+
+                    }
+                } else {
+
+                }
+
+                rowWithOutCandies.forEach(function () {
+                })
+                */
+            }
+
+            console.log("Column: ", column, " No tiene: ", rowWithOutCandies, " pero tiene", rowWithCandies)
+        })
     }
 
     /**
@@ -657,7 +703,8 @@ var Game = (function Game() {
 
     return {
         init: init,
-        start: start
+        start: start,
+        createNewCandies: createNewCandies
     }
 })();
 
