@@ -14,22 +14,44 @@
 
     <div id="panel-tablero"></div>
 
-    <div id="panel-score">
-      <h1 class="titulos-game noShow color-yellow" style="text-align: center;" id="end-game">Juego Terminado</h1>
-      <div id="score">
-        <h2 class="data-titulo">Puntuación</h2>
-        <span class="data-info" id="score-text">0</span>
+    <h1 class="titulos-game noShow color-yellow" style="text-align: center;" id="end-game">Juego Terminado</h1>
+
+    <div id="panel-score-and-best-scores">
+      <div id="panel-score" class="div-flex">
+        <div id="score">
+          <h2 class="data-titulo">Puntuación</h2>
+          <span class="data-info" id="score-text">0</span>
+        </div>
+        <div id="moves">
+          <h2 class="data-titulo">Movimientos</h2>
+          <span class="data-info" id="movimientos-text">0</span>
+        </div>
+        <div id="time">
+          <h2 class="data-titulo">Tiempo</h2>
+          <div class="data-info" id="timer" data-minutes-left="2">02:00</div>
+        </div>
+        <div class="buttons">
+          <button id="btn-reinicio" onclick="Game.start()">Iniciar</button>
+        </div>
       </div>
-      <div id="moves">
-        <h2 class="data-titulo">Movimientos</h2>
-        <span class="data-info" id="movimientos-text">0</span>
-      </div>
-      <div id="time">
-        <h2 class="data-titulo">Tiempo</h2>
-        <div class="data-info" id="timer" data-minutes-left="0.1">02:00</div>
-      </div>
-      <div class="buttons">
-        <button id="btn-reinicio" onclick="Game.start()">Iniciar</button>
+      <div id="best-scores" class="div-flex noShow">
+        <div id="section-best-score" style="height: 24em;">
+          <h2 class="data-titulo">Mejores Puntajes</h2>
+          <span class="data-info" id="content-best-score">
+            <div>
+              <img src="./image/trofeo_1.png" alt="trofeo_1">
+              <span id="first_score"></span>
+            </div>
+            <div>
+              <img src="./image/trofeo_2.png" alt="trofeo_2">
+              <span id="second_score"></span>
+            </div>
+            <div>
+              <img src="./image/trofeo_3.png" alt="trofeo_3">
+              <span id="third_score"></span>
+            </div>
+          </span>
+        </div>
       </div>
     </div>
   </div>

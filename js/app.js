@@ -7,17 +7,18 @@ var Game = (function Game() {
      * @var score the score of a game
      * @var movements the movements of a game.
      * @var statusGame the status of the game.
+     * @var checkSuccessfulMovements check successful movements.
      */
     var score = 0
     var movements = 0
     var statusGame = 'new'
+    var checkSuccessfulMovements
 
     /**
      * @const width the length of rows and columns
      * @const candies list of all types of candy in the game
      * @const squares all candies of the board
-     * @const normalCombination is a combination posible for a player
-     * @const specialCombination is a combination only possible at the beginning of the game
+     * @const minMovement is the minimum combination of a successful movement.
      * @const successfulMovements successful movements
      */
     const width = 7
@@ -28,8 +29,7 @@ var Game = (function Game() {
         './image/4.png'
     ]
     const squares = []
-    const normalCombination = [5, 4, 3]
-    const specialCombination = [5, 4, 3]
+    const minMovement = 3
     const successfulMovements = []
 
     /**
@@ -39,6 +39,9 @@ var Game = (function Game() {
     const timer = $('#timer');
     const title = $("#main-titulo");
     const score_text = $("#score-text");
+    const first_score = $("#first_score");
+    const second_score = $("#second_score");
+    const third_score = $("#third_score");
     const btn_reinicio = $("#btn-reinicio");
     const movimientos_text = $("#movimientos-text");
 
@@ -47,6 +50,7 @@ var Game = (function Game() {
      * @let Dragging the Candy
      */
     let _myTimer = {}
+    let countTimer = 0
     let candyBeingDragged
     let candyBeingReplaced
     let squareIdBeingDragged
@@ -95,11 +99,7 @@ var Game = (function Game() {
             startTimerGame()
             createBoard()
             addEventsBoard()
-            analyzeBoard(specialCombination)
-            addScore()
-            removeSuccessfulMovementsOfBoard()
-            createNewCandies()
-
+            checkSuccessfulMovements = setInterval(checkNewSuccessfulMovements, 1000);
         } else {
             // Restart game
             changeStatusGame()
@@ -107,6 +107,7 @@ var Game = (function Game() {
                 resetGame()
             } else {
                 finishTimerGame()
+                clearInterval(checkSuccessfulMovements);
                 removeCandiesBoard()
             }
             changeScore()
@@ -125,10 +126,12 @@ var Game = (function Game() {
      */
     function newGame() {
         grid.html('')
+        countTimer = 0
         statusGame = "new"
         TimerGame.myTimer = {}
         sessionStorage.activeGame = true
         squares.splice(0, squares.length)
+        checkSuccessfulMovements = null
     }
 
     /**
@@ -137,7 +140,10 @@ var Game = (function Game() {
      */
     function resetGame() {
         $("#end-game").addClass("noShow")
-        $("#panel-score").css("width", "25%")
+        $("#best-scores").addClass("noShow")
+        $("#panel-score-and-best-scores").css("width", "30%")
+        $("#panel-score").css("width", "100%")
+        $("#panel-score").css("padding-right", "")
         $("#time").show("fast")
         title.show("fast")
         grid.show("fast")
@@ -162,38 +168,48 @@ var Game = (function Game() {
     }
 
     /**
-     * Remove all candies of the board
-     * @author Daniel Valencia <2020/06/08>
-     */
-    function removeCandiesBoard() {
-        grid.html('')
-    }
-
-    /**
-     * Show the results obtained
-     * @author Daniel Valencia <2020/06/08>
-     */
-    function showResults() {
-        grid.hide("slow")
-        title.hide("slow")
-        $("#time").hide("slow")
-        $("#panel-score").css("width", "100%")
-        $("#end-game").removeClass("noShow")
-    }
-
-    /**
      * Add events to the board's candies
      * @author Daniel Valencia <2020/06/07>
      */
     function addEventsBoard() {
-        let events = ["dragstart", "dragend", "dragover", "dragenter", "drageleave", "drop"]
-        let nameFunctionEvents = ["dragStart", "dragEnd", "dragOver", "dragEnter", "dragLeave", "dragDrop"]
+        let events = ["dragstart", "dragend", "dragover", "dragenter", "drop"]
+        let functionEvents = [dragStart, dragEnd, dragOver, dragEnter, dragDrop]
 
         squares.forEach(function (square, indexSquare) {
             events.forEach(function (element, index) {
-                square.on(element, eval(nameFunctionEvents[index]))
+                square.on(element, functionEvents[index])
             })
         })
+    }
+
+    /**
+     * Drag Start:
+     * Get the "candy" and "square" origin
+     * @author Daniel Valencia <2020/06/08>
+     */
+    function dragStart() {
+        candyBeingDragged = this.style.backgroundImage
+        squareIdBeingDragged = parseInt(this.id)
+    }
+
+    /**
+    * Drag End:
+    * Prevent wrong movements
+    * @author Daniel Valencia <2020/06/08>
+    */
+    function dragEnd() {
+        if (squareIdBeingReplaced) {
+            if (validationMove()) {
+                squareIdBeingReplaced = null
+                changeMovements(1)
+                showMovements()
+            } else {
+                squares[squareIdBeingReplaced - 1].css("background-image", candyBeingReplaced)
+                squares[squareIdBeingDragged - 1].css("background-image", candyBeingDragged)
+            }
+        } else {
+            squares[squareIdBeingDragged].css("background-image", candyBeingDragged)
+        }
     }
 
     /**
@@ -215,26 +231,6 @@ var Game = (function Game() {
     }
 
     /**
-     * Drag Leave, Remove background image style
-     * @author Daniel Valencia <2020/06/08>
-     */
-    function dragLeave() {
-        $("#" + this.id).css("background-image", "")
-        console.log("DragLeave", this.id)
-    }
-
-    /**
-     * Drag Start:
-     * Get the "candy" and "square" origin
-     * @author Daniel Valencia <2020/06/08>
-     */
-    function dragStart() {
-        candyBeingDragged = this.style.backgroundImage
-        squareIdBeingDragged = parseInt(this.id)
-        console.log("* DragStart: ", squareIdBeingDragged)
-    }
-
-    /**
      * Drag Drop:
      * Get the "candy" and "square" destination
      * After the candies will be exchange
@@ -246,30 +242,6 @@ var Game = (function Game() {
 
         this.style.backgroundImage = candyBeingDragged
         squares[squareIdBeingDragged - 1].css("background-image", candyBeingReplaced)
-        console.log("DragDrop", squareIdBeingReplaced)
-    }
-
-    /**
-    * Drag End:
-    * Prevent wrong movements
-    * @author Daniel Valencia <2020/06/08>
-    */
-    function dragEnd() {
-        if (squareIdBeingReplaced) {
-            if (validationMove()) {
-                squareIdBeingReplaced = null
-                changeMovements(1)
-                showMovements()
-                console.log("DragEnd Valid")
-            } else {
-                squares[squareIdBeingReplaced - 1].css("background-image", candyBeingReplaced)
-                squares[squareIdBeingDragged - 1].css("background-image", candyBeingDragged)
-                console.log("DragEnd Invalid")
-            }
-        } else {
-            squares[squareIdBeingDragged].css("background-image", candyBeingDragged)
-            console.log("DragEnd Itself")
-        }
     }
 
     /**
@@ -291,16 +263,26 @@ var Game = (function Game() {
     }
 
     /**
+     * Check new successful movements
+     * @author Daniel Valencia <2020/06/14>
+     */
+    function checkNewSuccessfulMovements() {
+        if (analyzeBoard()) {
+            addScore()
+            removeSuccessfulMovementsOfBoard()
+            reorderAndCreateNewCandies()
+        }
+    }
+
+    /**
      * Analyze Board in search of successful movements.
-     * @param array typeCombination: only can be { normalCombination, specialCombination }
+     * @return Boolean
      * @author Daniel Valencia <2020/06/09>
      */
-    function analyzeBoard(typeCombination) {
+    function analyzeBoard() {
         successfulMovements.splice(0, squares.length)
-        let allPossibleCombinations = typeCombination
 
-        allPossibleCombinations.forEach(function (typeMove, indexMove) {
-
+        for (let typeMove = width; typeMove >= minMovement; typeMove--) {
             for (let i = 1; i <= parseInt(width * width); i++) {
 
                 let typeCandy = squares[i - 1].css("background-image")
@@ -350,7 +332,90 @@ var Game = (function Game() {
                     successfulMovements.push(movement)
                 }
             }
-        })
+        }
+
+        return (successfulMovements.length > 0)
+    }
+
+    /**
+     * Compare Candies
+     * @param int idCandy
+     * @param int typeCandy
+     * @return Boolean
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function compareCandies(idCandy, typeCandy) {
+        return (squares[idCandy - 1].css("background-image") === typeCandy)
+    }
+
+    /**
+    * Limit Search Capability for rows
+    * @param int CandyPosition
+    * @param int typeMove
+    * @return Boolean
+    * @author Daniel Valencia <2020/06/09>
+    */
+    function limitSearchCapabilityRows(candyPosition, typeMove) {
+        let leaveSearch = []
+        let limit = typeMove - 2
+
+        for (let i = 1; i <= width; i++) {
+            for (let j = 1; j <= limit; j++) {
+                leaveSearch.push(width * i - j)
+            }
+            leaveSearch.push(width * i)
+        }
+        return leaveSearch.includes(candyPosition)
+    }
+
+    /**
+     * Limit Search Capability for columns
+     * @param int candyPosition
+     * @param int typeMove
+     * @return Boolean
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function limitSearchCapabilityColumns(candyPosition, typeMove) {
+        let limitSearchCapability = 0
+
+        for (i = 0; i < width - 2 && limitSearchCapability == 0; i++) {
+            if (typeMove == width - i) limitSearchCapability = i + 1
+        }
+
+        return (candyPosition > width * limitSearchCapability)
+    }
+
+    /**
+     * Exclude repeated movements
+     * @param obj movement
+     * @return Boolean
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function repeatedMovements(movement) {
+        if (successfulMovements.length > 0) {
+            let exit = false
+
+            if (movement.successRow) {
+                successfulMovements.some(function (element) {
+                    if (element.successRow) {
+                        if (compareTwoArrays(element.row, movement.row)) {
+                            exit = true
+                            return true
+                        }
+                    }
+                })
+            } else if (movement.successColumn) {
+                successfulMovements.some(function (element) {
+                    if (element.successColumn) {
+                        if (compareTwoArrays(element.column, movement.column)) {
+                            exit = true
+                            return true
+                        }
+                    }
+                })
+            }
+            return exit
+        }
     }
 
     /**
@@ -358,13 +423,11 @@ var Game = (function Game() {
      * @author Daniel Valencia <2020/06/09>
      */
     function addScore() {
-        if (successfulMovements.length > 0) {
-            successfulMovements.forEach(function (move, index) {
-                if (move.successRow) changeScore(parseInt(move.row.length))
-                if (move.successColumn) changeScore(parseInt(move.column.length))
-            })
-            showScore()
-        }
+        successfulMovements.forEach(function (move) {
+            if (move.successRow) changeScore(parseInt(move.row.length))
+            if (move.successColumn) changeScore(parseInt(move.column.length))
+        })
+        showScore()
     }
 
     /**
@@ -397,23 +460,32 @@ var Game = (function Game() {
         let removeCandies = getCandiesFromSuccessfulMovements()
 
         if (removeCandies.length > 0) {
-            removeCandies.forEach(index => {
-                squares[index - 1].css("background-image", "")
+            let removeCandy = null
+            removeCandies.forEach(function (index) {
+                index = parseInt(index)
+                removeCandy = squares[index - 1]
+                if (removeCandy && removeCandy.css("background-image") != 'none') {
+                    removeCandy.css("background-image", "")
+                }
             })
         }
     }
 
     /**
-     * Create new Candies
+     * Reorder and create new candies
+     * @return Boolean
      * @author Daniel Valencia <2020/06/09>
      */
-    function createNewCandies() {
+    function reorderAndCreateNewCandies() {
+        let deleteCandies = []
+        let correctPositionCandies = []
+
+        let amountDecrease = width - 1
         let withOutCandies = getCandiesFromSuccessfulMovements()
 
-        console.log("Need new candy: ", withOutCandies)
-        let columns = [7, 6, 5, 4, 3, 2, 1]
+        if (withOutCandies.length == 0) return false
 
-        columns.forEach(function (column, index) {
+        for (let column = width; column > 0; column--) {
             let rows = []
             let rowWithCandies = []
             let rowWithOutCandies = []
@@ -423,146 +495,78 @@ var Game = (function Game() {
                 rows.push(column + i * width)
             }
 
-            rows.forEach(function (row, rowId) {
-                withOutCandies.forEach(function (withOutCandy, withOutCandyId) {
-                    if (row == withOutCandy) {
-                        rowWithOutCandies.push(row)
-                    }
-                })
-            })
+            rowWithOutCandies = rows.filter(row => withOutCandies.includes(row.toString()))
 
-            if (rowWithOutCandies && rowWithOutCandies.length > 0) {
-                rowWithCandies = rows
-                    .filter(x => !rowWithOutCandies.includes(x))
-                    .concat(rowWithOutCandies.filter(x => !rows.includes(x)));
+            if (rowWithOutCandies.length > 0) {
 
                 rowWithOutCandies.sort(function (a, b) { return b - a });
 
-                /*
-                Todavía no se
-                if (rowWithCandies) {
-                    rowWithCandies.sort(function (a, b) { return b - a });
+                rowWithCandies = rows.filter(x => !rowWithOutCandies.includes(x))
+                    .concat(rowWithOutCandies.filter(x => !rows.includes(x)));
 
-                    if (rowWithCandies.length > rowWithOutCandies.length){
+                let newPositionCandies = rowWithOutCandies
 
+                if (rowWithCandies.length > 0) newPositionCandies = newPositionCandies.concat(rowWithCandies)
+
+                newPositionCandies = newPositionCandies.reverse()
+
+                newPositionCandies.forEach(function (newPosition, idPosition) {
+
+                    let positionWhereShouldBe = parseInt(rows[amountDecrease - idPosition])
+
+                    if (squares[newPosition - 1].css("background-image") != 'none') {
+                        if (newPosition != positionWhereShouldBe) {
+                            correctPositionCandies.push({
+                                shouldBe: positionWhereShouldBe,
+                                candy: newPosition
+                            })
+                        }
+                    } else {
+                        deleteCandies.push({
+                            column: column,
+                            shouldBe: positionWhereShouldBe
+                        })
                     }
-                } else {
+                })
 
+            }
+        }
+
+        if (correctPositionCandies.length > 0) {
+            correctPositionCandies.forEach(function (positionCandy) {
+                squares[positionCandy.shouldBe - 1].css(
+                    "background-image",
+                    squares[positionCandy.candy - 1].css("background-image")
+                )
+            })
+        }
+        if (deleteCandies.length > 0) {
+
+            deleteCandies.forEach(deleteCandy => squares[deleteCandy.shouldBe - 1].css("background-image", ""))
+
+            deleteCandies = deleteCandies.reduce(function (r, a) {
+                r[a.column] = r[a.column] || [];
+                r[a.column].push(a.shouldBe);
+                return r;
+            }, Object.create(null));
+
+            deleteCandies = Object.values(deleteCandies)
+
+            let newCandy
+            deleteCandies.forEach(candy => {
+                candy = candy.sort(function (a, b) { return a - b });
+
+                for (let i = 0; i < candy.length; i++) {
+
+                    newCandy = candies[getRandomInt(null, candies.length)]
+
+                    squares[candy[i] - 1].css("background-image", "url('" + newCandy + "')")
+                    // TODO: Down squares[candy[i] + width - 1].css("background-image")
                 }
+            })
 
-                rowWithOutCandies.forEach(function () {
-                })
-                */
-            }
-
-            console.log("Column: ", column, " No tiene: ", rowWithOutCandies, " pero tiene", rowWithCandies)
-        })
-    }
-
-    /**
-     * Exclude repeated movements
-     * @param obj movement
-     * @return Boolean
-     * @author Daniel Valencia <2020/06/09>
-     */
-    function repeatedMovements(movement) {
-        if (successfulMovements.length > 0) {
-            let exit = false
-
-            if (movement.successRow) {
-                successfulMovements.some(function (element, index) {
-                    if (element.successRow) {
-                        if (compareTwoArrays(element.row, movement.row)) {
-                            exit = true
-                            return true
-                        }
-                    }
-                })
-            } else if (movement.successColumn) {
-                successfulMovements.some(function (element, index) {
-                    if (element.successColumn) {
-                        if (compareTwoArrays(element.column, movement.column)) {
-                            exit = true
-                            return true
-                        }
-                    }
-                })
-            }
-            return exit
         }
-    }
-
-    /**
-     * Compare two arrays with numbers inside
-     * @param array array1
-     * @param array array2
-     * @return Boolean
-     * @author Daniel Valencia <2020/06/09>
-     */
-    function compareTwoArrays(array1, array2) {
-        let result = array1.concat(array2)
-        result = result.filter(onlyUnique);
-        result = result.sort(function (a, b) { return a - b });
-        result = result.join("")
-
-        return (array1.join("") === result)
-    }
-
-    /**
-     * Get unique values in array
-     * @param string value
-     * @param int index
-     * @param array self
-     */
-    function onlyUnique(value, index, self) {
-        return self.indexOf(value) === index;
-    }
-
-    /**
-     * Compare Candies
-     * @param int idCandy
-     * @param int typeCandy
-     * @return Boolean
-     * @author Daniel Valencia <2020/06/09>
-     */
-    function compareCandies(idCandy, typeCandy) {
-        return (squares[idCandy - 1].css("background-image") === typeCandy)
-    }
-
-    /**
-     * Limit Search Capability for rows
-     * @param int CandyPosition
-     * @param int typeMove
-     * @return Boolean
-     * @author Daniel Valencia <2020/06/09>
-     */
-    function limitSearchCapabilityRows(candyPosition, typeMove) {
-        let leaveSearch = []
-        let limit = typeMove - 2
-
-        for (let i = 1; i <= width; i++) {
-            for (let j = 1; j <= limit; j++) {
-                leaveSearch.push(width * i - j)
-            }
-            leaveSearch.push(width * i)
-        }
-        return leaveSearch.includes(candyPosition)
-    }
-
-    /**
-     * Limit Search Capability for columns
-     * @param int candyPosition
-     * @param int typeMove
-     * @return Boolean
-     * @author Daniel Valencia <2020/06/09>
-     */
-    function limitSearchCapabilityColumns(candyPosition, typeMove) {
-        let limitSearchCapability = typeMove
-
-        if (typeMove == 5) limitSearchCapability = 3
-        if (typeMove == 3) limitSearchCapability = 5
-
-        return (candyPosition > width * limitSearchCapability)
+        return true
     }
 
     /**
@@ -573,8 +577,9 @@ var Game = (function Game() {
         timer.html('')
 
         TimerGame.myTimer = timer.startTimer({
-            onComplete: function (element) {
-                timerComplete()
+            onComplete: function (e) {
+                countTimer++
+                if (countTimer == 1) timerComplete()
             },
             classNames: {
                 hours: 'noShow',
@@ -605,16 +610,72 @@ var Game = (function Game() {
         timer.html('00:00')
         timer.removeClass("flex")
         timer.removeClass("noShow")
+        clearInterval(checkSuccessfulMovements);
+        setTimeout(calculateAndShowThreeBestScore, 1000);
         removeCandiesBoard()
         showResults()
     }
 
     /**
-     * Remove the session storage
-     * @author Daniel Valencia <2020/06/06>
+     * Calculate and show the three best scores in the game history
+     * @author Daniel Valencia <2020/06/14>
      */
-    function removeSessionStorage() {
-        if (sessionStorage.activeGame) sessionStorage.removeItem("activeGame")
+    function calculateAndShowThreeBestScore() {
+        var threeBestScore = JSON.parse(localStorage.getItem("threeBestScore"))
+
+        if (threeBestScore && threeBestScore.length > 0) {
+
+            let newThreeBestScore = []
+
+            threeBestScore = threeBestScore.sort(function (a, b) { return b - a });
+
+            if (score > threeBestScore[0]) {
+                newThreeBestScore = [
+                    score,
+                    threeBestScore[0],
+                    threeBestScore[1]
+                ]
+            } else if (score > threeBestScore[1]) {
+                newThreeBestScore = [
+                    threeBestScore[0],
+                    score,
+                    threeBestScore[1]
+                ]
+            } else if (score > threeBestScore[2]) {
+                newThreeBestScore = [
+                    threeBestScore[0],
+                    threeBestScore[1],
+                    score
+                ]
+            } else {
+                newThreeBestScore = threeBestScore
+            }
+
+            localStorage.setItem("threeBestScore", JSON.stringify(newThreeBestScore))
+        } else {
+            localStorage.setItem("threeBestScore", JSON.stringify([score, 0, 0]))
+        }
+
+        threeBestScore = JSON.parse(localStorage.getItem("threeBestScore"))
+
+        first_score.html(threeBestScore[0])
+        second_score.html(threeBestScore[1])
+        third_score.html(threeBestScore[2])
+    }
+
+    /**
+     * Show the results obtained
+     * @author Daniel Valencia <2020/06/08>
+     */
+    function showResults() {
+        grid.hide("slow")
+        title.hide("slow")
+        $("#time").hide("slow")
+        $("#panel-score-and-best-scores").css("width", "100%")
+        $("#panel-score").css("width", "70%")
+        $("#panel-score").css("padding-right", "2em")
+        $("#best-scores").removeClass("noShow")
+        $("#end-game").removeClass("noShow")
     }
 
     /**
@@ -693,6 +754,22 @@ var Game = (function Game() {
     }
 
     /**
+     * Remove all candies of the board
+     * @author Daniel Valencia <2020/06/08>
+     */
+    function removeCandiesBoard() {
+        grid.html('')
+    }
+
+    /**
+     * Remove the session storage
+     * @author Daniel Valencia <2020/06/06>
+     */
+    function removeSessionStorage() {
+        if (sessionStorage.activeGame) sessionStorage.removeItem("activeGame")
+    }
+
+    /**
      * Return a random int between parameter min and parameter max
      * @param int min
      * @param int max
@@ -701,10 +778,35 @@ var Game = (function Game() {
         return Math.floor(Math.random() * (max - min)) + min;
     }
 
+    /**
+     * Compare two arrays with numbers inside
+     * @param array array1
+     * @param array array2
+     * @return Boolean
+     * @author Daniel Valencia <2020/06/09>
+     */
+    function compareTwoArrays(array1, array2) {
+        let result = array1.concat(array2)
+        result = result.filter(onlyUnique);
+        result = result.sort(function (a, b) { return a - b });
+        result = result.join("")
+
+        return (array1.join("") === result)
+    }
+
+    /**
+     * Get unique values in array
+     * @param string value
+     * @param int index
+     * @param array self
+     */
+    function onlyUnique(value, index, self) {
+        return self.indexOf(value) === index;
+    }
+
     return {
         init: init,
-        start: start,
-        createNewCandies: createNewCandies
+        start: start
     }
 })();
 
