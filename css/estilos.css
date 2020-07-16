@@ -25,6 +25,14 @@ body {
   width: 100%;
 }
 
+#main-titulo {
+  width: 70% !important;
+}
+
+.text-install {
+  font-family: gameFont;
+}
+
 #panel-tablero {
   width: 700px;
   height: 700px;
@@ -173,3 +181,23 @@ body {
   text-align: left;
 }
 /* Fin : Temporizador */
+#installContainer {
+  width: 30%;
+  margin-top: 1.6em;
+  float: right;
+}
+
+#installContainer > button {
+  background-image: linear-gradient(to top, #1b75bb 0%, #112d4e 100%);
+  border: 1px solid #fff;
+  color: #fff;
+  font-size: 1em;
+  font-weight: bold;
+  border-radius: 0.5em;
+  width: 100%;
+  padding: 1em;
+}
+
+#installContainer > button > img {
+  width: 3em;
+}
