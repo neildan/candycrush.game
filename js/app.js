@@ -9,7 +9,7 @@
   | 2) Inicializa el juego.
   | 3) Registra el Service Worker
   | 4) Definir las cookies
-  | 5) Enable display of Installation button
+  | 5) Habilita la visualización del botón de instalación
   |
   |--------------------------------------------------------------------------
   | @author Daniel Valencia <2020/07/06> <danielfelipeluis@outlook>
@@ -45,7 +45,7 @@ $(function () {
      * Si la PWA todavía no está instalada.
      * @author Daniel Valencia <2020/07/16>
      */
-    $(window).on("beforeinstallprompt", function(event){
+    $(window).on("beforeinstallprompt", function (event) {
         window.deferredPrompt = event;
         seeInstallationButton()
     })
@@ -66,17 +66,17 @@ $(function () {
     })
 
     /**
-     * Enable display of Installation button
+     * Habilita la visualización del botón de instalación
      * @param Boolean see
      */
     function seeInstallationButton(see = false) {
         let classNoShow = "noShow"
         let buttonInstall = $("#installContainer")
 
-        if (see) {
-            if (!buttonInstall.hasClass(classNoShow)) buttonInstall.addClass(classNoShow)
-        } else {
-            if (buttonInstall.hasClass(classNoShow)) buttonInstall.removeClass(classNoShow)
+        if (see && !buttonInstall.hasClass(classNoShow)) {
+            buttonInstall.addClass(classNoShow)
+        } else if (!see && buttonInstall.hasClass(classNoShow)) {
+            buttonInstall.removeClass(classNoShow)
         }
     }
 
