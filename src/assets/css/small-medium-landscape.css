@@ -1,0 +1,10 @@
+@media screen and (max-width: 1195px) and (orientation: landscape) {
+    #main-container {
+        display: none;
+    }
+    #mode-unavailable-text {
+        color: white;
+        font-size: 7vw;
+        text-align: center;
+    }
+}

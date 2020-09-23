@@ -1,0 +1,37 @@
+@media screen and (max-width: 1195px) and (orientation: portrait) {
+    #dashboard-panel {
+        width: 90vw;
+        height: 90vw;
+        border: 6px solid #e87306;
+        background: rgba(232, 115, 6, 0.5);
+        border-radius: 5px;
+        display: flex;
+        flex-flow: row wrap;
+    }
+    #dashboard-panel>img {
+        height: 12.15vw;
+        width: 12.15vw;
+        background-size: contain;
+    }
+    #mode-unavailable-text {
+        display: none;
+    }
+    .box-game {
+        text-align: center;
+        border: 3px solid #e87306;
+        border-radius: 5px;
+        background: rgba(232, 115, 6, 0.5);
+        margin-top: 3rem;
+    }
+    .statistics div {
+        padding: 0px;
+    }
+    .statistics p {
+        font-size: 11px;
+        padding: 5px 2px 0px 2px;
+    }
+    #btn-restart {
+        margin-top: 3rem;
+        margin-bottom: 1rem;
+    }
+}

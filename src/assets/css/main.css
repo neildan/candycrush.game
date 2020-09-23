@@ -1,0 +1,56 @@
+@font-face {
+    font-family: gameFont;
+    src: url("../fonts/PressStart2P.ttf");
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-image: url("../image/background.jpg");
+    background-size: cover;
+    overscroll-behavior: contain;
+    justify-content: space-between;
+}
+
+h1,
+p,
+.font-game {
+    font-family: gameFont;
+}
+
+#btn-restart {
+    background: #e8ca06;
+    border: 6px solid #ffb206;
+    border-radius: 5px;
+    font-size: 1em;
+    color: #ff4007;
+    width: 100%;
+    max-width: 100%;
+    padding: 6px;
+}
+
+#btn-restart:hover {
+    color: #fff;
+    cursor: pointer;
+}
+
+#btn-restart:active {
+    font-size: 0.8rem;
+}
+
+
+/* COLORS */
+
+.color-yellow {
+    color: #dcff0e;
+}
+
+.color-white {
+    color: white;
+}
+
+.color-light-yellow {
+    color: #e8ca06;
+}
